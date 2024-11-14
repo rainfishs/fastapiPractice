@@ -1,0 +1,13 @@
+# base from python 3.10.13
+FROM python:3.10.13-bookworm
+
+WORKDIR /code
+
+COPY requirements.txt /code/
+
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+COPY /app /code/app
+# run app/main.py
+CMD ["fastapi", "run", "app/main.py", "--port", "80"]
