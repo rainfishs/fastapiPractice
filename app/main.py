@@ -4,13 +4,14 @@ from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
+"""=== Database ==="""
 
-
-Base = declarative_base()
-DATABASE_URL = "sqlite:///./todos.db"
+DATABASE_URL = "sqlite:///./database.db"
 engine = create_engine(DATABASE_URL)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+
+# Define Tables(Models)
+Base = declarative_base()
 class Todo(Base):
     __tablename__ = "todos"
     id = Column(Integer, primary_key=True, index=True)
@@ -21,16 +22,18 @@ class Todo(Base):
 # Initialize Database's Table
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI()
+#factory method
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Database Injection
 def get_db():
-    db = SessionLocal()
+    session = SessionLocal()
     try:
-        yield db
+        yield session
     finally:
-        db.close()
+        session.close()
 
+"""=== Pydantic Models ===""" #for validation, parsing data in request and response
 class Item(BaseModel):
     def __init__(self, name: str, price: float, description: str = None):
         self.name = name
@@ -52,7 +55,24 @@ class TodoResponse(TodoBase):
         from_attributes = True
 
 
+"""=== Routes ==="""
 
+app = FastAPI()
+
+# 查所有 todo
+@app.get("/todos", response_model=list[TodoResponse])
+def read_todos(db: Session = Depends(get_db)):
+    return db.query(Todo).all()
+
+# 查單一 todo
+@app.get("/todo/{todo_id}", response_model=TodoResponse)
+def read_todo(todo_id: int, db: Session = Depends(get_db)):
+    db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
+    if not db_todo:
+        raise HTTPException(status_code=404, details="Todo not found")
+    return db_todo
+
+# 新增 todo
 @app.post("/todos", response_model=TodoResponse)
 def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
     db_todo = Todo(**todo.model_dump())
@@ -61,17 +81,7 @@ def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
     db.refresh(db_todo)
     return db_todo
 
-@app.get("/todos", response_model=list[TodoResponse])
-def read_todos(db: Session = Depends(get_db)):
-    return db.query(Todo).all()
-
-@app.get("/todo/{todo_id}", response_model=TodoResponse)
-def read_todo(todo_id: int, db: Session = Depends(get_db)):
-    db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    if not db_todo:
-        raise HTTPException(status_code=404, details="Todo not found")
-    return db_todo
-
+# 更新 todo
 @app.put("/todo/{todo_id}", response_model=TodoResponse)
 def update_todo(todo_id: int, todo: TodoCreate, db: Session = Depends(get_db)):
     db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
@@ -83,6 +93,7 @@ def update_todo(todo_id: int, todo: TodoCreate, db: Session = Depends(get_db)):
     db.refresh(db_todo)
     return db_todo
 
+# 刪除 todo
 @app.delete("/todo/{todo_id}")
 def delete_todo(todo_id: int, db: Session = Depends(get_db)):
     db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
