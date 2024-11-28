@@ -63,7 +63,7 @@ def read_todo(todo_id: int)-> TodoResponse:
     with SessionLocal() as db:
         db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
         if not db_todo:
-            raise HTTPException(status_code=404, details="Todo not found")
+            raise HTTPException(status_code=404, detail="Todo not found")
         return db_todo
 
 # 新增 todo
