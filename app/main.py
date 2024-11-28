@@ -33,17 +33,16 @@ class Item(BaseModel):
         self.price = price
         self.description = description
 
-class TodoBase(BaseModel):
+class TodoSchema(BaseModel):
     title: str
     description: str | None = None
     completed: bool = False
 
-class TodoCreate(TodoBase):
+class TodoCreate(TodoSchema):
     pass
 
-class TodoResponse(TodoBase):
+class TodoResponse(TodoSchema):
     id: int
-    
     class Config:
         from_attributes = True
 
@@ -53,14 +52,14 @@ class TodoResponse(TodoBase):
 app = FastAPI()
 
 # 查所有 todo
-@app.get("/todos", response_model=list[TodoResponse])
-def read_todos():
+@app.get("/todos")
+def read_todos()-> list[TodoResponse]:
     with SessionLocal() as db:
         return db.query(Todo).all()
 
 # 查單一 todo
-@app.get("/todo/{todo_id}", response_model=TodoResponse)
-def read_todo(todo_id: int):
+@app.get("/todo/{todo_id}")
+def read_todo(todo_id: int)-> TodoResponse:
     with SessionLocal() as db:
         db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
         if not db_todo:
@@ -68,8 +67,8 @@ def read_todo(todo_id: int):
         return db_todo
 
 # 新增 todo
-@app.post("/todos", response_model=TodoResponse)
-def create_todo(todo: TodoCreate):
+@app.post("/todos")
+def create_todo(todo: TodoCreate)-> TodoResponse:
     with SessionLocal() as db:
         db_todo = Todo(**todo.model_dump())
         db.add(db_todo)
@@ -78,8 +77,8 @@ def create_todo(todo: TodoCreate):
         return db_todo
 
 # 更新 todo
-@app.put("/todo/{todo_id}", response_model=TodoResponse)
-def update_todo(todo_id: int, todo: TodoCreate):
+@app.put("/todo/{todo_id}")
+def update_todo(todo_id: int, todo: TodoCreate)-> TodoResponse:
     with SessionLocal() as db:
         db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
         if not db_todo:
