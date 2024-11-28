@@ -25,13 +25,6 @@ Base.metadata.create_all(bind=engine)
 #factory method
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Database Injection
-def get_db():
-    session = SessionLocal()
-    try:
-        yield session
-    finally:
-        session.close()
 
 """=== Pydantic Models ===""" #for validation, parsing data in request and response
 class Item(BaseModel):
@@ -61,44 +54,49 @@ app = FastAPI()
 
 # 查所有 todo
 @app.get("/todos", response_model=list[TodoResponse])
-def read_todos(db: Session = Depends(get_db)):
-    return db.query(Todo).all()
+def read_todos():
+    with SessionLocal() as db:
+        return db.query(Todo).all()
 
 # 查單一 todo
 @app.get("/todo/{todo_id}", response_model=TodoResponse)
-def read_todo(todo_id: int, db: Session = Depends(get_db)):
-    db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    if not db_todo:
-        raise HTTPException(status_code=404, details="Todo not found")
-    return db_todo
+def read_todo(todo_id: int):
+    with SessionLocal() as db:
+        db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
+        if not db_todo:
+            raise HTTPException(status_code=404, details="Todo not found")
+        return db_todo
 
 # 新增 todo
 @app.post("/todos", response_model=TodoResponse)
-def create_todo(todo: TodoCreate, db: Session = Depends(get_db)):
-    db_todo = Todo(**todo.model_dump())
-    db.add(db_todo)
-    db.commit()
-    db.refresh(db_todo)
-    return db_todo
+def create_todo(todo: TodoCreate):
+    with SessionLocal() as db:
+        db_todo = Todo(**todo.model_dump())
+        db.add(db_todo)
+        db.commit()
+        db.refresh(db_todo)
+        return db_todo
 
 # 更新 todo
 @app.put("/todo/{todo_id}", response_model=TodoResponse)
-def update_todo(todo_id: int, todo: TodoCreate, db: Session = Depends(get_db)):
-    db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    if not db_todo:
-        raise HTTPException(status_code=404, details="Todo not found")
-    for key, value in todo.model_dump().items():
-        setattr(db_todo, key, value)
-    db.commit()
-    db.refresh(db_todo)
-    return db_todo
+def update_todo(todo_id: int, todo: TodoCreate):
+    with SessionLocal() as db:
+        db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
+        if not db_todo:
+            raise HTTPException(status_code=404, details="Todo not found")
+        for key, value in todo.model_dump().items():
+            setattr(db_todo, key, value)
+        db.commit()
+        db.refresh(db_todo)
+        return db_todo
 
 # 刪除 todo
 @app.delete("/todo/{todo_id}")
-def delete_todo(todo_id: int, db: Session = Depends(get_db)):
-    db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
-    if not db_todo:
-        raise HTTPException(status_code=404, details="Todo not found")
-    db.delete(db_todo)
-    db.commit()
-    return {"detail": "Todo deleted successfully"}
+def delete_todo(todo_id: int):
+    with SessionLocal() as db:
+        db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
+        if not db_todo:
+            raise HTTPException(status_code=404, details="Todo not found")
+        db.delete(db_todo)
+        db.commit()
+        return {"detail": "Todo deleted successfully"}
