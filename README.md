@@ -6,44 +6,16 @@ This is a FastAPI project.
 
 1. Clone the repository:
     ```bash
-    git clone https://github.com/yourusername/your-repo.git
-    cd your-repo
+    git clone https://github.com/rainfishs/fastapiPractice.git
+    cd fastapiPractice
     ```
 
-2. Create a virtual environment and activate it:
+2. Using Pipenv to install the dependencies:
     ```bash
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    pipenv install
     ```
-
-3. Install the dependencies:
-    ```bash
-    pip install -r requirements.txt
-    ```
-
-## Running the Application
-
-To run the FastAPI application, use the following command:
+## Start
+Run FastAPI in development mode:
 ```bash
-uvicorn main:app --reload
+pipenv run fastapi dev app/main.py
 ```
-
-## Project Structure
-
-```
-.
-├── app
-│   ├── main.py
-│   ├── models.py
-│   ├── schemas.py
-│   ├── crud.py
-│   └── database.py
-├── tests
-│   └── test_main.py
-├── requirements.txt
-└── README.md
-```
-
-## License
-
-This project is licensed under the MIT License.
