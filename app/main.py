@@ -1,8 +1,9 @@
 from fastapi import Depends, FastAPI, Depends, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlalchemy import create_engine, Column, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
+from typing import Annotated
 
 """=== Database ==="""
 
@@ -28,8 +29,8 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 """=== Pydantic Models ===""" #for validation, parsing data in request and response
 class TodoSchema(BaseModel):
-    title: str
-    description: str | None = None
+    title: str = Field(examples=["Buy Milk"], min_length=1)
+    description: str | None = Field(None, examples=["Go to the store and buy some milk"], min_length=1)
     completed: bool = False
 
 class TodoCreate(TodoSchema):
