@@ -27,12 +27,6 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 """=== Pydantic Models ===""" #for validation, parsing data in request and response
-class Item(BaseModel):
-    def __init__(self, name: str, price: float, description: str = None):
-        self.name = name
-        self.price = price
-        self.description = description
-
 class TodoSchema(BaseModel):
     title: str
     description: str | None = None
