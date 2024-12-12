@@ -4,28 +4,7 @@ from fastapi import FastAPI, HTTPException
 
 from .database import SessionLocal
 from .models import Todo
-
-"""=== Pydantic Models ==="""  # for validation, parsing data in request and response
-
-
-class TodoSchema(BaseModel):
-    title: str = Field(examples=["Buy Milk"], min_length=1)
-    description: str | None = Field(
-        None, examples=["Go to the store and buy some milk"], min_length=1
-    )
-    completed: bool = False
-
-
-class TodoCreate(TodoSchema):
-    pass
-
-
-class TodoResponse(TodoSchema):
-    id: int
-
-    class Config:
-        from_attributes = True
-
+from .schemas import TodoCreate, TodoResponse
 
 """=== Routes ==="""
 
