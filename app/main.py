@@ -66,7 +66,7 @@ def update_todo(todo_id: int, todo: TodoCreate) -> TodoResponse:
     with SessionLocal() as db:
         db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
         if not db_todo:
-            raise HTTPException(status_code=404, details="Todo not found")
+            raise HTTPException(status_code=404, detail="Todo not found")
         for key, value in todo.model_dump().items():
             setattr(db_todo, key, value)
         db.commit()
@@ -80,7 +80,7 @@ def delete_todo(todo_id: int):
     with SessionLocal() as db:
         db_todo = db.query(Todo).filter(Todo.id == todo_id).first()
         if not db_todo:
-            raise HTTPException(status_code=404, details="Todo not found")
+            raise HTTPException(status_code=404, detail="Todo not found")
         db.delete(db_todo)
         db.commit()
         return {"detail": "Todo deleted successfully"}
