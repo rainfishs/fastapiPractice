@@ -23,3 +23,4 @@ class User(Base):
     username = Column(String(50), unique=True, nullable=False)
     password_hash = Column(String(128), nullable=False)
     email = Column(String(100), unique=True, nullable=False)
+    status = Column(Boolean, default=True)
