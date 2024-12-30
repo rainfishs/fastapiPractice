@@ -155,3 +155,33 @@ def delete_user(user: UserDelete):
             return {"detail": "User deleted successfully"}
         else:
             raise HTTPException(status_code=400, detail="Password is incorrect")
+
+
+# 更新 user
+@users_router.put("/user/{user_id}")
+def update_user(user_id: int, user: UserUpdate) -> UserResponse:
+    with SessionLocal() as db:
+        db_user = db.query(User).filter(User.id == user_id).first()
+        if not db_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        # 驗證密碼
+        salt = get_salt()
+        hashed_password = hashlib.pbkdf2_hmac(
+            "sha256", user.password.encode("utf-8"), salt, 100000
+        )
+        if hashed_password != db_user.password_hash:
+            raise HTTPException(status_code=400, detail="Password is incorrect")
+        user_dict = user.model_dump()
+        user_dict.pop("password")
+        new_password = user_dict.pop("new_password")
+        if new_password:
+            hashed_new_password = hashlib.pbkdf2_hmac(
+                "sha256", new_password.encode("utf-8"), salt, 100000
+            )
+            user_dict["password_hash"] = hashed_new_password
+        for key, value in user_dict.items():
+            if value:
+                setattr(db_user, key, value)
+        db.commit()
+        db.refresh(db_user)
+        return db_user

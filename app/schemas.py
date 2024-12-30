@@ -51,3 +51,12 @@ class UserResponse(UserSchema):
 class UserDelete(UserSchema):
     id: int
     password: str = Field(examples=["password"], min_length=8)
+
+
+# 更新 user
+class UserUpdate(BaseModel):
+    username: str | None = Field(None, examples=["john_doe"], min_length=3)
+    email: EmailStr | None = Field(None, examples=["john_doe@gmail.com"], min_length=6)
+    password: str = Field(examples=["password"], min_length=8)
+    new_password: str | None = Field(None, examples=["new_password"], min_length=8)
+    status: bool | None = None
